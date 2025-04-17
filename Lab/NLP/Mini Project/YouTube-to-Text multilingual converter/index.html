@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube-to-Text multilingual converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 min-h-screen flex items-center justify-center px-4"
+  >
+    <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-xl w-full">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+        🎧 YouTube Audio to Text
+      </h1>
+      <p class="text-center text-gray-600 mb-4">
+        Convert YouTube videos into text in English, Hindi, and Marathi.
+      </p>
+
+      <form id="convertForm" class="space-y-6">
+        <div>
+          <label
+            for="youtubeUrl"
+            class="block text-sm font-medium text-gray-700"
+            >YouTube Video URL</label
+          >
+          <input
+            type="url"
+            id="youtubeUrl"
+            name="youtubeUrl"
+            required
+            placeholder="https://www.youtube.com/watch?v=..."
+            class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-xl transition"
+        >
+          Convert to Text
+        </button>
+      </form>
+
+      <div
+        id="status"
+        class="mt-6 hidden text-center text-purple-700 font-semibold"
+      >
+        Processing...
+      </div>
+
+      <div id="downloadLinks" class="mt-6 hidden text-center">
+        <p class="mb-4 text-green-600 font-medium">
+          Transcription complete! Download your files:
+        </p>
+        <div class="flex justify-center gap-4">
+          <a
+            id="downloadEnglish"
+            href="#"
+            download
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition"
+            >English</a
+          >
+          <a
+            id="downloadHindi"
+            href="#"
+            download
+            class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl transition"
+            >Hindi</a
+          >
+          <a
+            id="downloadMarathi"
+            href="#"
+            download
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition"
+            >Marathi</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('convertForm');
+      const status = document.getElementById('status');
+      const downloadLinks = document.getElementById('downloadLinks');
+
+      form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const youtubeUrl = document.getElementById('youtubeUrl').value; // Use a variable name that matches the backend
+
+          status.classList.remove('hidden');
+          downloadLinks.classList.add('hidden');
+          status.textContent = 'Processing...';
+
+          try {
+              const formData = new FormData(); // Use FormData to correctly send as form data
+              formData.append("youtube_url", youtubeUrl); // Append with the correct field name
+
+              const response = await fetch('/api/convert', {
+                  method: 'POST',
+                  body: formData, // Send FormData as the body
+              });
+
+              if (!response.ok) {
+                  const errorData = await response.json();
+                  status.textContent = `Error: ${JSON.stringify(errorData)}`;
+                  return;
+              }
+
+              const data = await response.json();
+
+              if (data.success) {
+                  document.getElementById('downloadEnglish').href = data.english;
+                  document.getElementById('downloadHindi').href = data.hindi;
+                  document.getElementById('downloadMarathi').href = data.marathi;
+
+                  downloadLinks.classList.remove('hidden');
+                  status.classList.add('hidden');
+              } else {
+                  status.textContent = data.error || 'Something went wrong.';
+              }
+
+          } catch (error) {
+              status.textContent = `Error: ${error.message}`;
+          }
+      });
+  </script>
+  </body>
+</html>
