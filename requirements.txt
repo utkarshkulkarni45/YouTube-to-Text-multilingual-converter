@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+openai-whisper
+python-multipart
+googletrans==4.0.0rc1  # Pinning the version can prevent issues
+yt-dlp

@@ -5,15 +5,15 @@ import whisper
 import os
 import re
 from googletrans import Translator
-import yt_dlp  # Import yt_dlp
+import yt_dlp
 
 app = FastAPI()
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Load Whisper model once
-model = whisper.load_model("base")
+# Load Whisper model once during app startup
+model = whisper.load_model("tiny")
 translator = Translator()
 
 # Serve HTML homepage
@@ -29,10 +29,11 @@ def is_valid_url(url):
     )
     return pattern.match(url)
 
-async def download_audio_yt_dlp(youtube_url, output_path="audio.mp3"):
+async def download_audio_yt_dlp(youtube_url, output_path="audio_temp.mp3"):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
+        'quiet': True,
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -49,7 +50,7 @@ async def convert_audio(youtube_url: str = Form(...)):
     if not is_valid_url(youtube_url):
         return JSONResponse(content={"detail": ["Invalid YouTube URL format."] }, status_code=400)
 
-    audio_path = "audio.mp3"
+    audio_path = "audio_temp.mp3"
     try:
         await download_audio_yt_dlp(youtube_url, audio_path)
     except Exception as e:
@@ -58,11 +59,15 @@ async def convert_audio(youtube_url: str = Form(...)):
     try:
         result = model.transcribe(audio_path)
         english_text = result["text"]
+        print(f"English transcription: '{english_text}'")
     except Exception as e:
         return JSONResponse(content={"detail": [f"Error during transcription: {str(e)}"]}, status_code=500)
-    finally:
-        if os.path.exists(audio_path):
-            os.remove(audio_path)
+
+    if not english_text.strip():
+        return JSONResponse(
+            content={"error": "No text was transcribed from the audio."},
+            status_code=400,
+        )
 
     try:
         hindi_translation = translator.translate(english_text, dest='hi').text
@@ -83,7 +88,7 @@ async def convert_audio(youtube_url: str = Form(...)):
             f.write(marathi_translation)
     except Exception as e:
         return JSONResponse(content={"detail": [f"Error saving transcripts: {str(e)}"]}, status_code=500)
-
+    # FINALLY BLOCK REMOVED - We need to keep the files for download!
     return JSONResponse(content={
         "success": True,
         "english": english_file,

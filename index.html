@@ -111,54 +111,55 @@
 
     <script>
         const form = document.getElementById('convertForm');
-        const status = document.getElementById('status');
-        const spinner = document.getElementById('spinner');
-        const downloadLinks = document.getElementById('downloadLinks');
+const status = document.getElementById('status');
+const spinner = document.getElementById('spinner');
+const downloadLinks = document.getElementById('downloadLinks');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const youtubeUrl = document.getElementById('youtubeUrl').value;
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const youtubeUrl = document.getElementById('youtubeUrl').value;
 
-            status.classList.remove('hidden');
-            spinner.classList.remove('hidden');
-            downloadLinks.classList.add('hidden');
+    status.classList.remove('hidden');
+    spinner.classList.remove('hidden');
+    downloadLinks.classList.add('hidden');
 
-            try {
-                const formData = new FormData();
-                formData.append("youtube_url", youtubeUrl);
+    try {
+        const formData = new FormData();
+        formData.append("youtube_url", youtubeUrl);
 
-                const response = await fetch('/api/convert', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    status.textContent = errorData.detail ? (Array.isArray(errorData.detail) ? errorData.detail.join(', ') : errorData.detail) : `Error: HTTP status ${response.status}`;
-                    spinner.classList.add('hidden');
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    document.getElementById('downloadEnglish').href = data.english;
-                    document.getElementById('downloadHindi').href = data.hindi;
-                    document.getElementById('downloadMarathi').href = data.marathi;
-
-                    downloadLinks.classList.remove('hidden');
-                    status.classList.add('hidden');
-                    spinner.classList.add('hidden');
-                } else {
-                    status.textContent = data.error || 'Something went wrong.';
-                    spinner.classList.add('hidden');
-                }
-
-            } catch (error) {
-                status.textContent = `Error: ${error.message}`;
-                spinner.classList.add('hidden');
-            }
+        const response = await fetch('/api/convert', {
+            method: 'POST',
+            body: formData,
         });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            status.textContent = errorData.detail ? (Array.isArray(errorData.detail) ? errorData.detail.join(', ') : errorData.detail) : `Error: HTTP status ${response.status}`;
+            spinner.classList.add('hidden');
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Construct the correct download URLs
+            document.getElementById('downloadEnglish').href = `/${data.english}`;
+            document.getElementById('downloadHindi').href = `/${data.hindi}`;
+            document.getElementById('downloadMarathi').href = `/${data.marathi}`;
+
+            downloadLinks.classList.remove('hidden');
+            status.classList.add('hidden');
+            spinner.classList.add('hidden');
+        } else {
+            status.textContent = data.error || 'Something went wrong.';
+            spinner.classList.add('hidden');
+        }
+
+    } catch (error) {
+        status.textContent = `Error: ${error.message}`;
+        spinner.classList.add('hidden');
+    }
+});
     </script>
 </body>
 </html>
