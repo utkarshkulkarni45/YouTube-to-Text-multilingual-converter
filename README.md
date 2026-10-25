@@ -32,7 +32,7 @@ flowchart LR
     C --> P[ConversionPipelineService]
     P --> V[UrlValidator]
     P --> CS[CaptionService]
-    CS --> Y[YtDlpClient (ProcessBuilder)]
+    CS --> Y["YtDlpClient (ProcessBuilder)"]
     P -->|no captions| TS[TranscriptionService]
     TS --> W[WhisperClient (HTTP)]
     P --> TR[TranslationService]
@@ -135,6 +135,3 @@ See the **`.env.example`** file for a template.
 - Deploy a public demo instance.
 
 ---
-
-## 📄 License
-MIT (placeholder).

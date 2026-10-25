@@ -30,6 +30,7 @@ target/
 
 ### Python & App artifacts ###
 __pycache__/
+.ai/
 *.py[cod]
 *$py.class
 *.mp3
