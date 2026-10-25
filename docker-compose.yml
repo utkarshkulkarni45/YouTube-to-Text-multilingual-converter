@@ -1,0 +1,13 @@
+services:
+  youtube-to-text:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - APP_TRANSLATION_PROVIDER=mymemory
+    restart: unless-stopped
+
